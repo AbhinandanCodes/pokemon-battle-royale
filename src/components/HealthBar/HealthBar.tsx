@@ -13,6 +13,7 @@ const HealthBar: React.FC<HealthBarProps> = ({ currentHp, maxHp, name }) => {
     if (currentHp !== currentHpState) {
       setCurrentHpState(currentHp);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentHp]);
 
   const healthPercent = Math.max((currentHpState / maxHp) * 100, 0);

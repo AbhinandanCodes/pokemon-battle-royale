@@ -54,7 +54,7 @@ const PokemonCard = ({ pokemon }: Props) => {
   ];
 
   return (
-    <div className="rounded-2xl shadow-xl overflow-hidden border-none w-[300px] transform transition-transform hover:scale-105 hover:shadow-2xl duration-300 ease-in-out">
+    <div className="rounded-2xl transition-all shadow-xl overflow-hidden border-none w-[300px] transform  hover:scale-105 hover:shadow-2xl duration-300 ease-in-out">
       {/* Top Section */}
       <div
         style={{ backgroundColor: topColor }}

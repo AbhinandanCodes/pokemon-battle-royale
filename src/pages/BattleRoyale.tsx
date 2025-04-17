@@ -1,17 +1,18 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import {
   resetBattle,
   setPokemons,
   startBattle,
 } from "../features/battle/battleSlice";
-import PokemonCard from "../components/PokemonCard/PokemonCard";
-import HealthBar from "../components/HealthBar/HealthBar";
 import { BattlePokemon, TurnLog } from "../features/battle/types";
-// import { getCachedPokemon } from "../utils/cache";
+import BattleArena from "../components/BattleArena/BattleArena";
+import { useBattleAnimation } from "../hooks/useBattleAnimation";
+import { useNavigate } from "react-router-dom";
 
 const BattleRoyale = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const allPokemons = useAppSelector((state) => state.pokemon.data);
   const battleLog = useAppSelector(
     (state) => state.battle.battleLog
@@ -19,67 +20,24 @@ const BattleRoyale = () => {
   const originalBattlePokemons = useAppSelector(
     (state) => state.battle.pokemons
   );
+  const winner = useAppSelector((state) => state.battle.winners);
 
   const [currentLogIndex, setCurrentLogIndex] = useState(0);
   const [updatedPokemons, setUpdatedPokemons] = useState<BattlePokemon[]>([]);
-  const [updatedPokemons1, setUpdatedPokemons1] =
-    useState<BattlePokemon[]>(updatedPokemons);
-
   const [logReady, setLogReady] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Reset battle on first render
-  useEffect(() => {
-    dispatch(resetBattle());
-  }, [dispatch]);
+  const [hasPlayed, setHasPlayed] = useState(false);
+  const [speedFactor, setSpeedFactor] = useState(1);
+  const [paused, setPaused] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
-    const currentLog = battleLog[currentLogIndex];
-    if (currentLog) {
-      // currentLog.actions.forEach(async (action) => {
-
-      // });
-
-      const animateActions = async () => {
-        for (let i = 0; i < currentLog.actions.length; i++) {
-          const action = currentLog.actions[i];
-          const attacker = document.getElementById(String(action.attackerId));
-          const defender = document.getElementById(String(action.defenderId));
-          if (attacker && defender) {
-            const attackerRect = attacker.getBoundingClientRect();
-            const defenderRect = defender.getBoundingClientRect();
-            const attackerX = attackerRect.x + attackerRect.width / 2;
-            const attackerY = attackerRect.y + attackerRect.height / 2;
-            const defenderX = defenderRect.x + defenderRect.width / 2;
-            const defenderY = defenderRect.y + defenderRect.height / 2;
-            const distanceX = defenderX - attackerX;
-            const distanceY = defenderY - attackerY;
-
-            attacker.style.transform = `translate(${distanceX}px, ${distanceY}px)`;
-            attacker.style.transition = "transform 0.2s ease-in-out";
-
-            defender.style.transform = "translate(10px)";
-            setTimeout(() => {
-              defender.style.transform = "translate(0)";
-            }, 50);
-            setTimeout(() => {
-              attacker.style.transform = "translateY(0)";
-            }, 100);
-          }
-          setUpdatedPokemons1(updatedPokemons);
-          await new Promise((resolve) => setTimeout(resolve, 500));
-        }
-      };
-
-      animateActions();
-      // console.log(getCachedPokemon(currentLog.actions[0].attackerId));
-      // console.log(currentLog.actions);
-      // console.log(`Turn ${current}`);
+    if (allPokemons.length === 0) {
+      navigate("/");
+    } else {
+      dispatch(resetBattle());
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [battleLog, currentLogIndex]);
+  }, [allPokemons, dispatch, navigate]);
 
-  // After Pokémon data is available, set and start battle
   useEffect(() => {
     if (allPokemons.length > 0) {
       dispatch(setPokemons(allPokemons));
@@ -87,106 +45,131 @@ const BattleRoyale = () => {
     }
   }, [allPokemons, dispatch]);
 
-  // Initialize updatedPokemons when originalPokemons change
   useEffect(() => {
     setUpdatedPokemons(originalBattlePokemons);
+    setHasPlayed(false);
   }, [originalBattlePokemons]);
 
-  // Process battleLog turn by turn
-  useEffect(() => {
-    if (battleLog.length > 0 && updatedPokemons.length > 0) {
-      let i = 0;
+  useBattleAnimation(
+    battleLog,
+    updatedPokemons,
+    setUpdatedPokemons,
+    setCurrentLogIndex,
+    hasPlayed,
+    setHasPlayed,
+    setLogReady,
+    speedFactor,
+    paused
+  );
 
-      intervalRef.current = setInterval(() => {
-        const turn = battleLog[i];
-        if (!turn) {
-          clearInterval(intervalRef.current!);
-          return;
-        }
+  const togglePause = () => setPaused((prev) => !prev);
+  const toggleShowHistory = () => setShowHistory((prev) => !prev);
 
-        // Apply damage/fainting effects
-        setUpdatedPokemons((prev) => {
-          const updated = [...prev];
-          turn.actions.forEach((action) => {
-            if (
-              action.defenderId !== undefined &&
-              action.defenderCurrentHp !== undefined
-            ) {
-              const idx = updated.findIndex((p) => p.id === action.defenderId);
-              if (idx !== -1) {
-                updated[idx] = {
-                  ...updated[idx],
-                  currentHp: Math.max(action.defenderCurrentHp, 0),
-                };
-              }
-            }
-          });
-          return updated;
-        });
+  const finalLog =
+    winner && winner.length > 0
+      ? `Winner${winner.length > 1 ? "s" : ""}: ${winner
+          .map((w) => w.name)
+          .join(", ")}`
+      : null;
 
-        setCurrentLogIndex(i);
-        i++;
-
-        if (i >= battleLog.length) {
-          clearInterval(intervalRef.current!);
-        }
-      }, 2000);
-
-      setLogReady(true);
-
-      return () => {
-        if (intervalRef.current) clearInterval(intervalRef.current);
-      };
-    }
-  }, [battleLog, updatedPokemons.length]);
+  const isFinalTurn = currentLogIndex === battleLog.length - 1;
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-6">Battle Royale</h1>
+    <div className="p-6 flex gap-6">
+      <div className="flex-1">
+        <h1 className="text-2xl font-bold mb-4">Battle Royale</h1>
 
-      {/* Cards + HP bars */}
-      <div className="flex flex-wrap gap-6 justify-center">
-        {updatedPokemons1.map((pokemon) => (
-          <div
-            key={pokemon.id}
-            id={String(pokemon.id)}
-            className="flex flex-col items-center w-[300px]"
-          >
-            <HealthBar
-              currentHp={pokemon.currentHp}
-              maxHp={pokemon.maxHp}
-              name={pokemon.name}
+        {/* Speed and Controls */}
+        <div className="mb-6">
+          <label htmlFor="speedSlider" className="block font-medium mb-2">
+            ⚙️ Animation Speed:
+          </label>
+          <div className="flex items-center gap-3">
+            <span role="img" aria-label="slow">
+              ⚡
+            </span>
+            <input
+              id="speedSlider"
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.1"
+              value={speedFactor}
+              onChange={(e) => {
+                setSpeedFactor(Number(e.target.value));
+              }}
+              className="w-32"
             />
-            <div
-              className={`${
-                pokemon.currentHp <= 0 ? "translate-y-300" : "translate-y-0"
-              } transition-transform duration-500`}
+            <span role="img" aria-label="fast">
+              🐢
+            </span>
+            <button
+              onClick={togglePause}
+              className="ml-4 px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
             >
-              <PokemonCard pokemon={pokemon} />
-            </div>
+              {paused ? "▶️ Resume" : "⏸ Pause"}
+            </button>
           </div>
-        ))}
+          <div className="text-sm text-gray-500 mt-1">
+            {speedFactor === 0.5
+              ? "Fast ⚡"
+              : speedFactor === 1
+              ? "Normal 🚶‍♂️"
+              : "Slow 🐢"}
+          </div>
+        </div>
+
+        <BattleArena pokemons={updatedPokemons} />
       </div>
 
-      {/* Turn Logs */}
-      {logReady && (
-        <div className="mt-10 bg-gray-100 p-4 rounded-lg max-w-2xl mx-auto shadow">
-          {battleLog[currentLogIndex] && (
-            <>
-              <h2 className="text-lg font-semibold text-indigo-600 mb-2">
-                Turn {battleLog[currentLogIndex].turn}
-              </h2>
-              <ul className="list-disc list-inside space-y-1">
-                {battleLog[currentLogIndex].actions.map((action, index) => (
-                  <li key={index} className="text-sm text-gray-800">
-                    {action.message}
-                  </li>
+
+      <div className="w-[350px] max-h-screen overflow-y-auto p-4 bg-gray-50 rounded shadow-lg border border-gray-200">
+        <h2 className="text-xl font-semibold mb-3 text-center">Turn Log</h2>
+
+        {logReady && (
+          <div className="flex flex-col gap-2">
+
+            {finalLog && isFinalTurn && (
+              <div className="p-3 mb-2 rounded bg-green-100 border-l-4 border-green-500 font-semibold shadow">
+                <p className="mb-1">{finalLog}</p>
+              </div>
+            )}
+
+            {!isFinalTurn && battleLog[currentLogIndex] && (
+              <div className="p-3 mb-2 rounded bg-yellow-100 border-l-4 border-yellow-500 font-semibold shadow text-sm">
+                <p className="mb-1 font-medium">Current Turn: {currentLogIndex + 1}</p>
+                {battleLog[currentLogIndex].actions.map((action, i) => (
+                  <p key={i}>{action.message}</p>
                 ))}
-              </ul>
-            </>
-          )}
-        </div>
-      )}
+              </div>
+            )}
+
+
+            <button
+              onClick={toggleShowHistory}
+              className="self-start px-2 py-1 text-sm rounded bg-gray-200 hover:bg-gray-300 text-gray-800 transition"
+            >
+              {showHistory ? "⬆️ Hide History" : "⬇️ Show History"}
+            </button>
+
+
+            {showHistory &&
+              battleLog
+                .slice(0, isFinalTurn ? currentLogIndex + 1 : currentLogIndex)
+                .map((turn, index) => (
+                  <div
+                    key={index}
+                    className="p-3 mb-2 rounded bg-white border-l-4 border-gray-200 text-sm"
+                  >
+                    <p className="mb-1 font-medium">Turn {index + 1}</p>
+                    {turn.actions.map((action, i) => (
+                      <p key={i}>{action.message}</p>
+                    ))}
+                  </div>
+                ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

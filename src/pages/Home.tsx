@@ -74,12 +74,6 @@ const Home = () => {
             🔴⚪ Fetch some Pokémon to watch the Battle Royale unfold!
           </p>
         )}
-        {loading && (
-          <InfoToolTip
-            message={<p>Fetch 151 Pokémon once for faster fetches later on!</p>}
-            direction="top"
-          />
-        )}
 
         <div className="flex flex-wrap justify-center gap-6">
           {data.map((p) => (

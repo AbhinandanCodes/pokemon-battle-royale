@@ -54,35 +54,39 @@ const PokemonCard = ({ pokemon }: Props) => {
   ];
 
   return (
-    <div className="rounded-2xl transition-all shadow-xl overflow-hidden border-none w-[300px] transform  hover:scale-105 hover:shadow-2xl duration-300 ease-in-out">
-      {/* Top Section */}
+    <div className="rounded-2xl border-4 border-emerald-700 shadow-xl overflow-hidden transform hover:scale-105 hover:shadow-2xl duration-300 ease-in-out bg-white">
+
       <div
         style={{ backgroundColor: topColor }}
-        className="p-4 text-white text-center"
+        className="p-4 text-white text-center border-b-4 border-emerald-900"
       >
         <img
           src={sprite}
           alt={name}
-          className="mx-auto w-24 h-24 transition-all duration-300 ease-in-out hover:scale-110"
+          className="mx-auto w-28 h-28 transition-all duration-300 ease-in-out hover:scale-110"
+          loading="lazy"
         />
-        <h2 className="text-xl font-bold capitalize">{name}</h2>
-        <p className="capitalize text-sm">Type: {type}</p>
+        <h2 className="text-2xl font-bold capitalize text-white">{name}</h2>
+        <p className="capitalize text-sm font-semibold">Type: {type}</p>
       </div>
 
-      {/* Bottom Section */}
-      <div style={{ backgroundColor: bottomColor }} className="p-4 text-white">
+
+      <div
+        style={{ backgroundColor: bottomColor }}
+        className="p-4 text-white border-t-4 border-emerald-900"
+      >
         <h3 className="text-lg font-semibold capitalize mb-2">{move.name}</h3>
         <div className="grid grid-cols-2 gap-2 text-sm">
-          <div className="flex items-center gap-2 bg-black bg-opacity-20 px-2 py-1 rounded">
+          <div className="flex items-center gap-2 bg-black bg-opacity-20 px-3 py-1 rounded">
             <FaBolt /> Power: {move.power}
           </div>
-          <div className="flex items-center gap-2 bg-black bg-opacity-20 px-2 py-1 rounded">
+          <div className="flex items-center gap-2 bg-black bg-opacity-20 px-3 py-1 rounded">
             <FaHeartbeat /> PP: {move.pp}
           </div>
-          <div className="flex items-center gap-2 bg-black bg-opacity-20 px-2 py-1 rounded">
+          <div className="flex items-center gap-2 bg-black bg-opacity-20 px-3 py-1 rounded">
             <FaDiceD6 /> Accuracy: {move.accuracy}
           </div>
-          <div className="flex items-center gap-2 bg-black bg-opacity-20 px-2 py-1 rounded">
+          <div className="flex items-center gap-2 bg-black bg-opacity-20 px-3 py-1 rounded">
             <GiSprint /> Priority: {move.priority}
           </div>
         </div>
@@ -93,7 +97,7 @@ const PokemonCard = ({ pokemon }: Props) => {
             <div
               key={i}
               style={{ backgroundColor: s.color }}
-              className="flex items-center gap-1 px-2 py-1 rounded text-black font-semibold"
+              className="flex items-center gap-1 px-3 py-1 rounded text-black font-semibold"
             >
               {s.icon} {s.label}: {s.value}
             </div>

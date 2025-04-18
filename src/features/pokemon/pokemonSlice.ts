@@ -14,7 +14,7 @@ export const fetchPokemon = createAsyncThunk<
   void,
   number,
   { dispatch: AppDispatch }
->("pokemon/fetchPokemonData", async (count: number = 10, { dispatch }) => {
+>("pokemon/fetchPokemonData", async (count: number = 5, { dispatch }) => {
   const randomIds = getRandomIDs(count);
   for (const id of randomIds)
     try {

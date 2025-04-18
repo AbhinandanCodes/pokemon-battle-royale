@@ -1,7 +1,7 @@
 import { Move, MoveCache } from "../types";
 import pokeAPIClient from "../../../services/pokeAPIClient";
 import { getCachedMove, setMoveCache } from "../../../utils/cache";
-
+import capitalizeFirstLetter from "../../../utils/capitalizeFirstLetter";
 
 const fallbackMove: Move = {
   id: 165,
@@ -22,7 +22,8 @@ export const fetchMovesFromAPI = async (moves: number[]): Promise<Move[]> => {
       const cachedMove = await createCachedMove(id);
       if (
         cachedMove.damageClass &&
-        (cachedMove.damageClass === "physical" || cachedMove.damageClass === "special") &&
+        (cachedMove.damageClass === "physical" ||
+          cachedMove.damageClass === "special") &&
         cachedMove.power !== 0
       ) {
         validMoves.push(cachedMove);
@@ -52,7 +53,7 @@ const createCachedMove = async (id: number): Promise<MoveCache> => {
   }
   const move = await pokeAPIClient.get(`/move/${id}`);
   const moveData = move.data;
-  const name: string = moveData.name;
+  const name: string = capitalizeFirstLetter(moveData.name);
   const type: string = moveData.type.name;
   const power: number = moveData.power || 0;
   const pp: number = moveData.pp || 0;
@@ -60,7 +61,7 @@ const createCachedMove = async (id: number): Promise<MoveCache> => {
   const priority: number = moveData.priority || 0;
   const accuracy: number = moveData.accuracy || 100;
   const cachedMove: MoveCache = {
-    id:id,
+    id: id,
     name: name,
     type: type,
     power: power,

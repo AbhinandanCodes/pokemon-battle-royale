@@ -1,6 +1,6 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { persistReducer, persistStore } from "redux-persist";
-import storage from "redux-persist/lib/storage"; // uses localStorage
+import storage from "redux-persist/lib/storage";
 import pokemonReducer from "../features/pokemon/pokemonSlice";
 import battleReducer from "../features/battle/battleSlice";
 

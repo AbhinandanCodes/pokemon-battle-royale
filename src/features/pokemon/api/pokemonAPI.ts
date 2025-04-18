@@ -1,5 +1,7 @@
 import pokeAPIClient from "../../../services/pokeAPIClient";
 import { getCachedPokemon, setPokemonCache } from "../../../utils/cache";
+import capitalizeFirstLetter from "../../../utils/capitalizeFirstLetter";
+import sleep from "../../../utils/sleep";
 import { Pokemon, Move, Stat, PokemonCache } from "../types";
 import { extractMoveIds } from "../utils/idUtils";
 import { extractStats } from "../utils/statUtils";
@@ -19,12 +21,13 @@ export const fetchPokemonFromAPI = async (id: number): Promise<Pokemon> => {
 const createCachedPokemon = async (id: number): Promise<PokemonCache> => {
   const cached = getCachedPokemon(id);
   if (cached) {
+    await sleep(1) //to prevent sending too many image request at same time
     return cached;
   }
   const response = await pokeAPIClient.get(`/pokemon/${id}`);
   const data = response.data;
   const movesId: number[] = extractMoveIds(data.moves);
-  const name: string = data.name;
+  const name: string = capitalizeFirstLetter(data.name);
   const type: string = data.types[0].type.name;
   const stat: Stat = extractStats(data.stats);
   const sprite: string = data.sprites.front_default;

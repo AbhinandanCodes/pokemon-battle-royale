@@ -112,7 +112,7 @@ export const logDamageEvents = (
   }
 
   if(defender.isFainted){
-    message+=`\n${defender.name} fainted!`
+    message += `\n${defender.name} fainted!`;
   }
 
   const actionLog: ActionLog = {

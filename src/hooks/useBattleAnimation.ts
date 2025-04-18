@@ -63,11 +63,13 @@ export const useBattleAnimation = (
               const defenderRect = defender.getBoundingClientRect();
 
               const deltaX =
-                defenderRect.left - attackerRect.left +
+                defenderRect.left -
+                attackerRect.left +
                 defenderRect.width / 2 -
                 attackerRect.width / 2;
               const deltaY =
-                defenderRect.top - attackerRect.top +
+                defenderRect.top -
+                attackerRect.top +
                 defenderRect.height / 2 -
                 attackerRect.height / 2;
 
@@ -89,7 +91,9 @@ export const useBattleAnimation = (
                 action.defenderId !== undefined &&
                 action.defenderCurrentHp !== undefined
               ) {
-                const idx = updated.findIndex((p) => p.id === action.defenderId);
+                const idx = updated.findIndex(
+                  (p) => p.id === action.defenderId
+                );
                 if (idx !== -1) {
                   updated[idx] = {
                     ...updated[idx],
@@ -102,7 +106,6 @@ export const useBattleAnimation = (
 
             await delay(50);
           }
-
           await delay(100);
         }
       };
